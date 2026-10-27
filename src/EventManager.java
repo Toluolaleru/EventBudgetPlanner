@@ -1,8 +1,8 @@
 import java.util.Scanner;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class EventManager {
 
@@ -41,11 +41,11 @@ public class EventManager {
             System.out.println("4. Record a Payment");
             System.out.println("5. View Budget Summary");
             System.out.println("6. Save and Exit");
-            System.out.println("Select from the menu listed above:");
+            System.out.println("Select a number from the menu listed above:");
             
             // Read user's input from the menu
             choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline character
+            scanner.nextLine();
             
             // Option 1: Create a New Event
             if (choice == 1) {
@@ -62,9 +62,9 @@ public class EventManager {
                 System.out.println("Enter event location:");
                 String location = scanner.nextLine();
                 
-                System.out.println("Enter event budget:");
+                System.out.println("Enter event budget ($):");
                 Float budget = scanner.nextFloat();
-                scanner.nextLine(); // Consume newline character
+                scanner.nextLine(); 
                 
                 // Create an inner HashMap to hold the specific event's details
                 HashMap<String, Object> eventDetails = new HashMap<>();
@@ -97,7 +97,7 @@ public class EventManager {
                      
                     System.out.println("Enter the number of the event you want to view:");
                     int selectedEvent = scanner.nextInt(); 
-                    scanner.nextLine(); // Consume newline character
+                    scanner.nextLine(); 
                     
                     // Check if the selected number is within valid range
                     if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
@@ -139,7 +139,7 @@ public class EventManager {
                     // Step 3: Ask the user to choose an event by typing its number
                     System.out.println("Enter the number of the event you want to add expenses to:");
                     int selectedEvent = scanner.nextInt();
-                    scanner.nextLine(); // Consume the newline character left in the scanner buffer
+                    scanner.nextLine(); 
                     
                     // Step 4: Validate that the number entered falls within our list's valid range
                     if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
@@ -171,7 +171,7 @@ public class EventManager {
                             
                             System.out.println("Enter expense amount ($):");
                             float expenseAmount = scanner.nextFloat();
-                            scanner.nextLine(); // Consume the newline character after the float input
+                            scanner.nextLine();
                             
                             // Store the expense name and amount into the event's expense map
                             eventExpenses.put(expenseName, expenseAmount);
@@ -186,15 +186,139 @@ public class EventManager {
                     
                 }
     
-            // Option 4: Record a Payment (Placeholder)
-           } else if (choice == 4) {
+             // Option 4: Record a Payment with Multi-Entry Loop
+            } else if (choice == 4) {
                 System.out.println("\n========= Record a Payment ==========");
-                System.out.println("Feature coming soon!");
-                
-            // Option 5: View Budget Summary (Placeholder)
+
+                // Step 1: Check if any events exist in our main map
+                if (events.isEmpty()) {
+                    System.out.println("No events available to record payments.");
+                } else {
+                    System.out.println("See available events below:");
+
+                    // Step 2: Convert map keys into an ArrayList so we can display them with numbers
+                    List<String> keys = new ArrayList<>(events.keySet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        System.out.println((i + 1) + ". " + keys.get(i));
+                    }
+                    
+                    // Step 3: Ask the user to choose an event by typing its number
+                    System.out.println("Enter the number of the event you want to add payments to:");
+                    int selectedEvent = scanner.nextInt();
+                    scanner.nextLine(); // Consume the newline character left in the scanner buffer
+                    
+                    // Step 4: Validate that the number entered falls within our list's valid range
+                    if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
+                        
+                        // Map the number back to the event name string using index alignment (- 1)
+                        String eventName = keys.get(selectedEvent - 1);
+                        HashMap<String, Object> details = events.get(eventName);
+                        
+                        // Step 5: Check if this event already has a "Payments" bucket; if not, create one
+                        if (!details.containsKey("Payments")) {
+                            details.put("Payments", new HashMap<String, Float>());
+                        }
+                        
+                        // Retrieve the inner payments map safely
+                        @SuppressWarnings("unchecked")
+                        HashMap<String, Float> eventPayments = (HashMap<String, Float>) details.get("Payments");
+                        
+                        // Step 6: Open a continuous while loop to allow logging multiple payments
+                        boolean addingPayments = true;
+                        while (addingPayments) {
+                            System.out.println("Enter payment description (or type 'done' to finish):");
+                            String paymentSource = scanner.nextLine();
+                            
+                            // Exit the loop if the user types 'done' (ignoring case)
+                            if (paymentSource.equalsIgnoreCase("done")) {
+                                addingPayments = false;
+                                break;
+                            }
+                            
+                            System.out.println("Enter payment amount ($):");
+                            float paymentAmount = scanner.nextFloat();
+                            scanner.nextLine(); 
+                            
+                            // Store the payment source and amount into the event's payment map
+                            eventPayments.put(paymentSource, paymentAmount);
+                            System.out.println("-> Payment recorded successfully!\n");
+                        }
+                        
+                        System.out.println("Finished recording payments for " + eventName + ".");
+                        
+                    } else {
+                        System.out.println("Invalid event number. Try again!");
+                    }
+                }
+               
+             // Option 5: View Budget Summary (Initial Budget vs. Expenses)
             } else if (choice == 5) {
                 System.out.println("\n========= View Budget Summary ==========");
-                System.out.println("Feature coming soon!");
+
+                // Step 1: Check if any events exist in our main map
+                if (events.isEmpty()) {
+                    System.out.println("No events available to view budget summary.");
+                } else {
+                    System.out.println("See available events below:");
+
+                    // Step 2: Convert map keys into an ArrayList for numbered selection
+                    List<String> keys = new ArrayList<>(events.keySet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        System.out.println((i + 1) + ". " + keys.get(i));
+                    }
+                    
+                    // Step 3: Ask the user to choose an event number
+                    System.out.println("Enter the number of the event you want to view the summary for:");
+                    int selectedEvent = scanner.nextInt();
+                    scanner.nextLine(); // Consume the newline character
+                    
+                    // Step 4: Validate the selected number range
+                    if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
+                        
+                        // Map the number back to the event name string using index alignment (- 1)
+                        String eventName = keys.get(selectedEvent - 1);
+                        HashMap<String, Object> details = events.get(eventName);
+                        
+                        // Step 5: Extract the Initial Budget
+                        float initialBudget = (float) details.get("Budget");
+                        
+                        // Print out the header for the financial report
+                        System.out.println("\n========================================");
+                        System.out.println("          BUDGET SUMMARY: " + eventName);
+                        System.out.println("========================================");
+                        System.out.println("Initial Budget: $" + initialBudget);
+                        
+                        // Step 6: Process and Display Expenses Breakdown
+                        float totalExpenses = 0.0f;
+                        System.out.println("\n--- Expenses Breakdown ---");
+                        if (details.containsKey("Expenses")) {
+                            @SuppressWarnings("unchecked")
+                            HashMap<String, Float> eventExpenses = (HashMap<String, Float>) details.get("Expenses");
+                            
+                            if (eventExpenses.isEmpty()) {
+                                System.out.println("No expenses recorded yet.");
+                            } else {
+                                for (Entry<String, Float> entry : eventExpenses.entrySet()) {
+                                    System.out.println("- " + entry.getKey() + ": $" + entry.getValue());
+                                    totalExpenses += entry.getValue();
+                                }
+                            }
+                        } else {
+                            System.out.println("No expenses recorded yet.");
+                        }
+                        System.out.println("Total Expenses: $" + totalExpenses);
+                        
+                        // Step 7: Calculate and Display Remaining Budget (Initial Budget - Total Expenses)
+                        float remainingBudget = initialBudget - totalExpenses;
+                        System.out.println("\n----------------------------------------");
+                        System.out.println("Remaining Budget: $" + remainingBudget);
+                        System.out.println("========================================");
+                        
+                    } else {
+                        System.out.println("Invalid event number. Try again!");
+                    }
+                }
+
                 
             // Option 6: Save and Exit
             } else if (choice == 6) {
