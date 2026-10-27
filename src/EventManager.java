@@ -102,7 +102,7 @@ public class EventManager {
                     // Check if the selected number is within valid range
                     if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
                         
-                        // Map the user's number to the exact String name using index alignment (- 1)
+                        // Map the user's number to the exact String name using index alignment
                         String eventName = keys.get(selectedEvent - 1);
                         
                         // Get the inner hashmap that holds the details of the event selected
@@ -144,7 +144,7 @@ public class EventManager {
                     // Step 4: Validate that the number entered falls within our list's valid range
                     if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
                         
-                        // Map the number back to the event name string using index alignment (- 1)
+                        // Map the number back to the event name string using index alignment
                         String eventName = keys.get(selectedEvent - 1);
                         HashMap<String, Object> details = events.get(eventName);
                         
@@ -251,7 +251,7 @@ public class EventManager {
                     }
                 }
                
-             // Option 5: View Budget Summary (Initial Budget vs. Expenses)
+             // Option 5: View Budget Summary with Explicit Calculation Steps
             } else if (choice == 5) {
                 System.out.println("\n========= View Budget Summary ==========");
 
@@ -308,21 +308,47 @@ public class EventManager {
                         }
                         System.out.println("Total Expenses: $" + totalExpenses);
                         
-                        // Step 7: Calculate and Display Remaining Budget (Initial Budget - Total Expenses)
+                        // Step 7: Calculate and Display Remaining Budget with Formula
                         float remainingBudget = initialBudget - totalExpenses;
                         System.out.println("\n----------------------------------------");
+                        System.out.println("Calculation: Initial ($" + initialBudget + ") - Expenses ($" + totalExpenses + ")");
                         System.out.println("Remaining Budget: $" + remainingBudget);
+                        
+                        // Step 8: Process and Display Payments Breakdown
+                        float totalPayments = 0.0f;
+                        System.out.println("\n--- Payments Breakdown ---");
+                        if (details.containsKey("Payments")) {
+                            @SuppressWarnings("unchecked")
+                            HashMap<String, Float> eventPayments = (HashMap<String, Float>) details.get("Payments");
+                            
+                            if (eventPayments.isEmpty()) {
+                                System.out.println("No payments recorded yet.");
+                            } else {
+                                for (Entry<String, Float> entry : eventPayments.entrySet()) {
+                                    System.out.println("- " + entry.getKey() + ": $" + entry.getValue());
+                                    totalPayments += entry.getValue();
+                                }
+                            }
+                        } else {
+                            System.out.println("No payments recorded yet.");
+                        }
+                        System.out.println("Total Payments Received: $" + totalPayments);
+                        
+                        // Step 9: Calculate and Display Net Balance with Formula
+                        float netBalance = remainingBudget + totalPayments;
+                        System.out.println("----------------------------------------");
+                        System.out.println("Calculation: Remaining ($" + remainingBudget + ") + Payments ($" + totalPayments + ")");
+                        System.out.println("Final Net Balance: $" + netBalance);
                         System.out.println("========================================");
                         
                     } else {
                         System.out.println("Invalid event number. Try again!");
                     }
                 }
-
                 
             // Option 6: Save and Exit
             } else if (choice == 6) {
-                System.out.println("\nSaving and exiting application. Goodbye!");
+                System.out.println("\nThank you for using the Event Management System. Now saving and exiting application. Goodbye!");
                 
             } else {
                 System.out.println("Invalid choice. Try again!");
