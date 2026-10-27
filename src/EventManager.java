@@ -120,13 +120,74 @@ public class EventManager {
                     }
                 }
                 
-            // Option 3: Manage Expenses (Placeholder for collaborative coding)
+             // Option 3: Manage Expenses with Multi-Entry Loop
             } else if (choice == 3) {    
                 System.out.println("\n========= Manage Expenses ==========");
-                System.out.println("Under construction...");
-                
+
+                // Step 1: Check if any events exist in our main map
+                if (events.isEmpty()) {
+                    System.out.println("No events available to manage expenses.");
+                } else {
+                    System.out.println("See available events below:");
+
+                    // Step 2: Convert map keys into an ArrayList so we can display them with numbers
+                    List<String> keys = new ArrayList<>(events.keySet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        System.out.println((i + 1) + ". " + keys.get(i));
+                    }
+                    
+                    // Step 3: Ask the user to choose an event by typing its number
+                    System.out.println("Enter the number of the event you want to add expenses to:");
+                    int selectedEvent = scanner.nextInt();
+                    scanner.nextLine(); // Consume the newline character left in the scanner buffer
+                    
+                    // Step 4: Validate that the number entered falls within our list's valid range
+                    if (selectedEvent >= 1 && selectedEvent <= keys.size()) {
+                        
+                        // Map the number back to the event name string using index alignment (- 1)
+                        String eventName = keys.get(selectedEvent - 1);
+                        HashMap<String, Object> details = events.get(eventName);
+                        
+                        // Step 5: Check if this event already has an Expenses storage; if not, create one
+                        if (!details.containsKey("Expenses")) {
+                            details.put("Expenses", new HashMap<String, Float>());
+                        }
+                        
+                        // Retrieve the inner expense map safely
+                        @SuppressWarnings("unchecked")
+                        HashMap<String, Float> eventExpenses = (HashMap<String, Float>) details.get("Expenses");
+                        
+                        // Step 6: Use a continuous while loop to allow user to enter multiple expenses
+                        boolean addingExpenses = true;
+                        while (addingExpenses) {
+                            System.out.println("Enter expense name (or type 'done' to finish):");
+                            String expenseName = scanner.nextLine();
+                            
+                            // Exit the loop if the user types 'done' (ignoring case)
+                            if (expenseName.equalsIgnoreCase("done")) {
+                                addingExpenses = false;
+                                break;
+                            }
+                            
+                            System.out.println("Enter expense amount ($):");
+                            float expenseAmount = scanner.nextFloat();
+                            scanner.nextLine(); // Consume the newline character after the float input
+                            
+                            // Store the expense name and amount into the event's expense map
+                            eventExpenses.put(expenseName, expenseAmount);
+                            System.out.println("-> Expense recorded successfully!\n");
+                        }
+                        
+                        System.out.println("Finished managing expenses for " + eventName + ".");
+                        
+                    } else {
+                        System.out.println("Invalid event number. Try again!");
+                    }
+                    
+                }
+    
             // Option 4: Record a Payment (Placeholder)
-            } else if (choice == 4) {
+           } else if (choice == 4) {
                 System.out.println("\n========= Record a Payment ==========");
                 System.out.println("Feature coming soon!");
                 
