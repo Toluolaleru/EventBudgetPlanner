@@ -10,23 +10,17 @@ import java.util.List;
 
 /**
  * Service class managing the core business logic for events, 
- * including creation, lookup, dynamic financial logging, and deletion.
+ * includes creation, find, dynamic financial logging, and deletion.
  */
 public class EventManager {
     private List<Event> events;
 
-    /**
-     * Initializes an empty EventManager service.
-     */
+    // Initializes an empty EventManager service.
     public EventManager() {
         this.events = new ArrayList<>();
     }
 
-    /**
-     * Adds a new event to the managed event list.
-     * 
-     * @param event the Event object to store
-     */
+    // Adds a new event to the managed event list.
     public void addEvent(Event event) {
         events.add(event);
     }
@@ -41,7 +35,7 @@ public class EventManager {
     }
 
     /**
-     * Searches for an event by name (case-insensitive).
+     * Searches for an event by name.
      * 
      * @param name the name of the event to look up
      * @return the matching Event object
@@ -58,10 +52,6 @@ public class EventManager {
 
     /**
      * Records a new expense against a specific event.
-     * 
-     * @param eventName the name of the target event
-     * @param expense the ExpenseRecord to attach
-     * @throws EventNotFoundException if the event does not exist
      */
     public void addExpenseToEvent(String eventName, ExpenseRecord expense) throws EventNotFoundException {
         Event event = findEventByName(eventName);
@@ -70,10 +60,6 @@ public class EventManager {
 
     /**
      * Records a new payment against a specific event.
-     * 
-     * @param eventName the name of the target event
-     * @param payment the PaymentRecord to attach
-     * @throws EventNotFoundException if the event does not exist
      */
     public void addPaymentToEvent(String eventName, PaymentRecord payment) throws EventNotFoundException {
         Event event = findEventByName(eventName);
@@ -82,10 +68,6 @@ public class EventManager {
 
     /**
      * Removes an event from the system by its name.
-     * 
-     * @param eventName the name of the event to delete
-     * @return true if successfully removed
-     * @throws EventNotFoundException if the target event is not found
      */
     public boolean deleteEvent(String eventName) throws EventNotFoundException {
         Event event = findEventByName(eventName);
