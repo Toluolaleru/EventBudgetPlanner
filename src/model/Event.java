@@ -1,78 +1,145 @@
-import java.util.HashMap;
+package model;
 
-    // The Event class acts as our Model. 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents an Event entity containing its core details, location, category,
+ * allocated budget, and lists of associated expense and payment records.
+ */
 public class Event {
-    
-    private String name;
-    private String type;
-    private String date;
+    private String eventName;
+    private String eventDate;
     private String location;
-    private float budget;
-    
-    // Created a separate HashMap collections to store financial entries securely for this specific event
-    private HashMap<String, Float> expenses;
-    private HashMap<String, Float> payments;
+    private String category;
+    private double allocatedBudget;
+    private List<ExpenseRecord> expenses;
+    private List<PaymentRecord> payments;
 
-    // Constructor: This will run automatically when we create a new Event object.
-    public Event(String name, String type, String date, String location, float budget) {
-        this.name = name;
-        this.type = type;
-        this.date = date;
+    // Constructs a new Event with complete details and an allocated budget.
+
+    public Event(String eventName, String eventDate, String location, String category, double allocatedBudget) {
+        this.eventName = eventName;
+        this.eventDate = eventDate;
         this.location = location;
-        this.budget = budget;
-        
-        // Initialize empty maps for expenses and payments when the event is created
-        this.expenses = new HashMap<>();
-        this.payments = new HashMap<>();
+        this.category = category;
+        this.allocatedBudget = allocatedBudget;
+        this.expenses = new ArrayList<>();
+        this.payments = new ArrayList<>();
     }
 
-    // 2. Getters: Safe accessor methods to read private field values from other classes
-    public String getName() { return name; }
-    public String getType() { return type; }
-    public String getDate() { return date; }
-    public String getLocation() { return location; }
-    public float getBudget() { return budget; }
-    
-    public HashMap<String, Float> getExpenses() { return expenses; }
-    public HashMap<String, Float> getPayments() { return payments; }
+    // --- Getters and Setters ---
 
-    // 3. Business Logic: Methods that handle data manipulation and calculations
-    
-    // Adds an expense description and amount to the event's expense map
-    public void addExpense(String description, float amount) {
-        expenses.put(description, amount);
+    public String getEventName() {
+        return eventName;
     }
 
-    // Adds a payment description and amount to the event's payment map
-    public void addPayment(String description, float amount) {
-        payments.put(description, amount);
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
     }
 
-    // Loops through all stored expenses and sums them up
-    public float getTotalExpenses() {
-        float total = 0;
-        for (float amount : expenses.values()) {
-            total += amount;
+    public String getEventDate() {
+        return eventDate;
+    }
+
+    public void setEventDate(String eventDate) {
+        this.eventDate = eventDate;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public double getAllocatedBudget() {
+        return allocatedBudget;
+    }
+
+    public void setAllocatedBudget(double allocatedBudget) {
+        this.allocatedBudget = allocatedBudget;
+    }
+
+    public List<ExpenseRecord> getExpenses() {
+        return expenses;
+    }
+
+    public List<PaymentRecord> getPayments() {
+        return payments;
+    }
+
+    // --- Record Management ---
+
+    /**
+     * Adds an expense record to this event's expense list.
+     */
+    public void addExpense(ExpenseRecord expense) {
+        this.expenses.add(expense);
+    }
+
+    /**
+     * Adds a payment record to this event's payment list.
+     */
+    public void addPayment(PaymentRecord payment) {
+        this.payments.add(payment);
+    }
+
+    // --- Financial Calculations ---
+
+    /**
+     * Calculates the total sum of all recorded expenses for this event.
+     */
+    public double getTotalExpenses() {
+        double total = 0;
+        for (ExpenseRecord e : expenses) {
+            total += e.getAmount();
         }
         return total;
     }
 
-    // Loops through all stored payments and sums them up
-    public float getTotalPayments() {
-        float total = 0;
-        for (float amount : payments.values()) {
-            total += amount;
+    /**
+     * Calculates the total sum of all recorded payments/funding for this event.
+     */
+    public double getTotalPayments() {
+        double total = 0;
+        for (PaymentRecord p : payments) {
+            total += p.getAmount();
         }
         return total;
     }
-
-    // Calculates how much budget is left after subtracting total expenses
-    public float getRemainingBudget() {
-        return budget - getTotalExpenses();
+    
+    /**
+     * Calculates the remaining budget (Allocated Budget minus Total Expenses).
+     */
+    public double getRemainingBudget() {
+        return allocatedBudget - getTotalExpenses();
     }
 
-    // Calculates the final finances: remaining budget + any incoming payments
-    public float getNetBalance() {
-        return getRemainingBudget() + getTotalPayments();
+    /**
+     * Calculates the net financial balance (Allocated Budget + Total Payments - Total Expenses).
+     */
+    public double getNetBalance() {
+        return allocatedBudget + getTotalPayments() - getTotalExpenses();
+    }
+    
+
+    @Override
+    public String toString() {
+        return "Event: " + eventName + 
+               " | Date: " + eventDate + 
+               " | Location: " + location + 
+               " | Category: " + category + 
+               " | Budget: $" + allocatedBudget + 
+               " | Total Expenses: $" + getTotalExpenses();
     }
 }
