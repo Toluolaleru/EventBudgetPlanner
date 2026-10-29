@@ -1,268 +1,231 @@
-import java.util.Scanner;
+package app;
+
+import exception.EventNotFoundException;
+import model.Event;
+import model.ExpenseRecord;
+import model.PaymentRecord;
+import service.EventManager;
+import util.Util;
+
 import java.util.List;
+import java.util.Scanner;
 
+/**
+ * Main application runner for the Event Management System.
+ * Provides the interactive console menu loop with enhanced UX and validation.
+ */
 public class EventApp {
-
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         EventManager eventManager = new EventManager();
-        boolean running = true;
+        Scanner scanner = new Scanner(System.in);
+        int choice = -1;
 
-        while (running) {
-            // Display your exact 6-option menu
-            System.out.println("\n======================================");    
-            System.out.println("Welcome to Event Management System");
-            System.out.println("1. Create New Event");
-            System.out.println("2. View Event Details");
-            System.out.println("3. Manage Expenses");
-            System.out.println("4. Record a Payment");
-            System.out.println("5. View Budget Summary");
-            System.out.println("6. Save and Exit");
-            System.out.println("Select a number from the menu listed above:");
+        System.out.println("==============================================");
+        System.out.println("   WELCOME TO THE EVENT MANAGEMENT SYSTEM");
+        System.out.println("==============================================");
 
-            // Safety check for user input
-            if (!scanner.hasNextInt()) {
-                System.out.println("[Error] Please enter a valid number.");
-                scanner.next(); // clear invalid input
+        while (choice != 0) {
+            System.out.println("\n--- Event Management Menu ---");
+            System.out.println("1. Add New Event");
+            System.out.println("2. View All Events");
+            System.out.println("3. Record Expense");
+            System.out.println("4. Record Payment");
+            System.out.println("5. View Financial & Budget Report");
+            System.out.println("6. Delete Event");
+            System.out.println("0. Exit");
+            
+            choice = Util.getInt("Choose an option: ");
+
+            switch (choice) {
+                case 1:
+                    addNewEvent(eventManager, scanner);
+                    break;
+                case 2:
+                    viewAllEvents(eventManager);
+                    break;
+                case 3:
+                    recordExpense(eventManager, scanner);
+                    break;
+                case 4:
+                    recordPayment(eventManager, scanner);
+                    break;
+                case 5:
+                    viewFinancialReport(eventManager, scanner);
+                    break;
+                case 6:
+                    deleteEvent(eventManager, scanner);
+                    break;
+                case 0:
+                    System.out.println("Exiting application. Goodbye!");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please enter a number between 0 and 6.");
+            }
+        }
+        Util.closeScanner();
+    }
+
+    private static void addNewEvent(EventManager manager, Scanner scanner) {
+        System.out.println("\n--- Add New Event ---");
+        String name = Util.getString("Enter Event Name: ");
+        String date = Util.getString("Enter Event Date (DD/MM/YYYY): ");
+        String location = Util.getString("Enter Location: ");
+        String category = Util.getString("Enter Category: ");
+        double budget = Util.getDouble("Enter Allocated Budget ($): ");
+
+        Event newEvent = new Event(name, date, location, category, budget);
+        manager.addEvent(newEvent);
+        System.out.println("-> Success! Event '" + name + "' has been created.");
+    }
+
+    private static void viewAllEvents(EventManager manager) {
+        System.out.println("\n--- See All Available Events ---");
+        List<Event> events = manager.getAllEvents();
+        if (events.isEmpty()) {
+            System.out.println("-> No events found in the system. Please create an event");
+            return;
+        }
+        int index = 1;
+        for (Event event : events) {
+            System.out.println(index + ". Event: " + event.getEventName());
+            System.out.println("   Date:     " + event.getEventDate());
+            System.out.println("   Location: " + event.getLocation());
+            System.out.println("   Category: " + event.getCategory());
+            System.out.println("   Budget:   $" + event.getAllocatedBudget());
+            System.out.println("   ----------------------------------------");
+            index++;
+        }
+    }
+
+    private static Event selectEventByIndex(EventManager manager, Scanner scanner) {
+        List<Event> events = manager.getAllEvents();
+        if (events.isEmpty()) {
+            System.out.println("->No events available in the system. Please create an event");
+            return null;
+        }
+
+        System.out.println("\nSelect an Event:");
+        for (int i = 0; i < events.size(); i++) {
+            System.out.println((i + 1) + ". " + events.get(i).getEventName());
+        }
+
+        int selection = Util.getInt("Enter event number: ");
+        if (selection < 1 || selection > events.size()) {
+            System.out.println("Invalid selection.");
+            return null;
+        }
+        return events.get(selection - 1);
+    }
+
+    private static void recordExpense(EventManager manager, Scanner scanner) {
+        System.out.println("\n--- Record Expense ---");
+        Event selectedEvent = selectEventByIndex(manager, scanner);
+        if (selectedEvent == null) return;
+
+        System.out.println("Adding expenses to: " + selectedEvent.getEventName());
+        System.out.println("Type 'done' for the description when you are finished adding expenses.");
+
+        while (true) {
+            System.out.print("\nEnter Expense Description (or type 'done' to finish): ");
+            String desc = scanner.nextLine().trim();
+            if (desc.equalsIgnoreCase("done")) {
+                break;
+            }
+            if (desc.isEmpty()) {
+                System.out.println("Description cannot be empty.");
                 continue;
             }
 
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // consume leftover newline
+            double amount = Util.getDouble("Enter Expense Amount ($): ");
 
-            switch (choice) {
-                case 1: // --- CREATE NEW EVENT ---
-                	System.out.println("\n========= Create New Event ==========");
-                    System.out.println("Enter event name:"); 
-                    String name = scanner.nextLine();
-
-                    if (eventManager.eventExists(name)) {
-                        System.out.println("[Error] An event with that name already exists!");
-                    } else {
-                        System.out.println("Enter event type:");
-                        String type = scanner.nextLine();
-                        
-                        System.out.println("Enter event date:");
-                        String date = scanner.nextLine();
-                        
-                        System.out.println("Enter event location:");
-                        String location = scanner.nextLine();
-                        
-                        // Strict validation for Budget (Must be a number and >= 0)
-                        float budget = -1;
-                        while (true) {
-                            System.out.println("Enter event budget ($):");
-                            if (scanner.hasNextFloat()) {
-                                budget = scanner.nextFloat();
-                                scanner.nextLine(); // consume newline
-                                
-                                if (budget >= 0) {
-                                    break;
-                                } else {
-                                    System.out.println("-> Error! Budget cannot be negative. Please try again:");
-                                }
-                            } else {
-                                System.out.println("-> Error! Please enter a valid number for the budget:");
-                                scanner.next();
-                            }
-                        }
-
-                        // Create the Event object with all attributes and save it
-                        Event newEvent = new Event(name, type, date, location, budget);
-                        eventManager.addEvent(name, newEvent);
-                        System.out.println("-> Event created successfully!");
-                    }
-                    break;
-
-                case 2: // --- VIEW EVENT DETAILS ---
-                    System.out.println("\n========= View Event Details ==========");
-                    if (eventManager.isEmpty()) {
-                        System.out.println("-> No events found. Please create one first.");
-                        break;
-                    }
-
-                    List<String> eventNames = eventManager.getEventNames();
-                    System.out.println("\nSelect an event:");
-                    for (int i = 0; i < eventNames.size(); i++) {
-                        System.out.println((i + 1) + ". " + eventNames.get(i));
-                    }
-
-                    int selectionIndex = scanner.nextInt() - 1;
-                    scanner.nextLine();
-
-                    if (selectionIndex >= 0 && selectionIndex < eventNames.size()) {
-                        Event selectedEvent = eventManager.getEvent(eventNames.get(selectionIndex));
-                        System.out.println("\n--- Details for " + selectedEvent.getName() + " ---");
-                        System.out.println("Type: " + selectedEvent.getType());
-                        System.out.println("Date: " + selectedEvent.getDate());
-                        System.out.println("Location: " + selectedEvent.getLocation());
-                        System.out.println("Budget: $" + selectedEvent.getBudget());
-                    } else {
-                        System.out.println("-> Error! Invalid selection. Try again");
-                    }
-                    break;
-
-                case 3: // --- MANAGE EXPENSES (Multi-entry loop) ---
-                    if (eventManager.isEmpty()) {
-                        System.out.println("-> No events found. Please create an event first.");
-                        break;
-                    }
-
-                    List<String> expenseEventList = eventManager.getEventNames();
-                    System.out.println("\n========= Manage Expenses ==========");
-                    System.out.println("Select an event to add expenses to:");
-                    for (int i = 0; i < expenseEventList.size(); i++) {
-                        System.out.println((i + 1) + ". " + expenseEventList.get(i));
-                    }
-
-                    int expenseIndex = scanner.nextInt() - 1;
-                    scanner.nextLine();
-
-                    if (expenseIndex >= 0 && expenseIndex < expenseEventList.size()) {
-                        Event selectedEvent = eventManager.getEvent(expenseEventList.get(expenseIndex));
-                        
-                        boolean addingExpenses = true;
-                        while (addingExpenses) {
-                            System.out.println("\nEnter expense description (or type 'done' to finish):");
-                            String description = scanner.nextLine();
-                            
-                            if (description.equalsIgnoreCase("done")) {
-                                addingExpenses = false;
-                                break;
-                            }
-                            
-                            // Strict validation for Expense Amount (Must be a number and >= 0)
-                            float amount = -1;
-                            while (true) {
-                                System.out.println("Enter expense amount ($):");
-                                if (scanner.hasNextFloat()) {
-                                    amount = scanner.nextFloat();
-                                    scanner.nextLine(); // consume newline
-                                    
-                                    if (amount >= 0) {
-                                        break;
-                                    } else {
-                                        System.out.println("-> Error! Expense amount cannot be negative. Please try again:");
-                                    }
-                                } else {
-                                    System.out.println("-> Please enter a valid number for the amount:");
-                                    scanner.next();
-                                }
-                            }
-
-                            selectedEvent.addExpense(description, amount);
-                            System.out.println("-> Expense recorded successfully!\n");
-                        }
-                        
-                        System.out.println("Finished managing expenses for " + selectedEvent.getName() + ".");
-                    } else {
-                        System.out.println("-> Invalid event number. Try again!");
-                    }
-                    break;
-
-                case 4: // --- RECORD A PAYMENT (Multi-entry loop) ---
-                    if (eventManager.isEmpty()) {
-                        System.out.println("->  No events found. Please create an event first.");
-                        break;
-                    }
-
-                    List<String> paymentEventList = eventManager.getEventNames();
-                    System.out.println("\n========= Record a Payment ==========");
-                    System.out.println("Select an event to record payments for:");
-                    for (int i = 0; i < paymentEventList.size(); i++) {
-                        System.out.println((i + 1) + ". " + paymentEventList.get(i));
-                    }
-
-                    int paymentIndex = scanner.nextInt() - 1;
-                    scanner.nextLine(); // Clear the Enter key trap
-
-                    if (paymentIndex >= 0 && paymentIndex < paymentEventList.size()) {
-                        Event selectedEvent = eventManager.getEvent(paymentEventList.get(paymentIndex));
-                        
-                        boolean addingPayments = true;
-                        while (addingPayments) {
-                            System.out.println("\nEnter payment description (or type 'done' to finish):");
-                            String description = scanner.nextLine();
-                            
-                            if (description.equalsIgnoreCase("done")) {
-                                addingPayments = false;
-                                break;
-                            }
-                            
-                            // Strict validation for Payment Amount (Must be a number and >= 0)
-                            float amount = -1;
-                            while (true) {
-                                System.out.println("Enter payment amount ($):");
-                                if (scanner.hasNextFloat()) {
-                                    amount = scanner.nextFloat();
-                                    scanner.nextLine(); // consume newline
-                                    
-                                    if (amount >= 0) {
-                                        break;
-                                    } else {
-                                        System.out.println("-> Error! Payment amount cannot be negative. Please try again:");
-                                    }
-                                } else {
-                                    System.out.println("-> Please enter a valid number for the amount:");
-                                    scanner.next();
-                                }
-                            }
-
-                            selectedEvent.addPayment(description, amount);
-                            System.out.println("-> Payment recorded successfully!\n");
-                        }
-                        
-                        System.out.println("Finished recording payments for " + selectedEvent.getName() + ".");
-                    } else {
-                        System.out.println("-> Invalid event number. Try again!");
-                    }
-                    break;
-
-                case 5: // --- VIEW BUDGET SUMMARY ---
-                    if (eventManager.isEmpty()) {
-                        System.out.println("-> No events found. Please create an event first.");
-                        break;
-                    }
-
-                    List<String> summaryEventList = eventManager.getEventNames();
-                    System.out.println("\n========= View Budget Summary ==========");
-                    System.out.println("Select an event to view its budget summary:");
-                    for (int i = 0; i < summaryEventList.size(); i++) {
-                        System.out.println((i + 1) + ". " + summaryEventList.get(i));
-                    }
-
-                    int summaryIndex = scanner.nextInt() - 1;
-                    scanner.nextLine();
-
-                    if (summaryIndex >= 0 && summaryIndex < summaryEventList.size()) {
-                        Event selectedEvent = eventManager.getEvent(summaryEventList.get(summaryIndex));
-                        
-                        System.out.println("\n======================================");
-                        System.out.println("    BUDGET SUMMARY FOR: " + selectedEvent.getName());
-                        System.out.println("======================================");
-                        System.out.println("Type: " + selectedEvent.getType());
-                        System.out.println("Date: " + selectedEvent.getDate());
-                        System.out.println("Location: " + selectedEvent.getLocation());
-                        System.out.println("  - Budget: $" + selectedEvent.getBudget());
-                        System.out.println("  - Expenses: $" + selectedEvent.getTotalExpenses());
-                        System.out.println("  - Payments: $" + selectedEvent.getTotalPayments());
-                        System.out.println("  - Remaining Budget: $" + selectedEvent.getRemainingBudget());
-                        System.out.println("  - Net Balance: $" + selectedEvent.getNetBalance());
-                        System.out.println("======================================");
-                    } else {
-                        System.out.println("-> Invalid selection.");
-                    }
-                    break;
-
-                case 6: // --- SAVE AND EXIT ---
-                    System.out.println("\nThank you for using Event Management System. Goodbye!");
-                    running = false;
-                    break;
-
-                default:
-                    System.out.println("-> Please choose a number between 1 and 6.");
+            try {
+                manager.addExpenseToEvent(selectedEvent.getEventName(), new ExpenseRecord(desc, amount));
+                System.out.println("-> Success! Expense recorded.");
+            } catch (EventNotFoundException e) {
+                System.out.println("Error: " + e.getMessage());
+                break;
             }
         }
-        scanner.close();
+    }
+
+    private static void recordPayment(EventManager manager, Scanner scanner) {
+        System.out.println("\n--- Record Payment ---");
+        Event selectedEvent = selectEventByIndex(manager, scanner);
+        if (selectedEvent == null) return;
+
+        System.out.println("Adding payments to: " + selectedEvent.getEventName());
+        System.out.println("Type 'done' for the description when you are finished adding payments.");
+
+        while (true) {
+            System.out.print("\nEnter Payment Description (or type 'done' to finish): ");
+            String desc = scanner.nextLine().trim();
+            if (desc.equalsIgnoreCase("done")) {
+                break;
+            }
+            if (desc.isEmpty()) {
+                System.out.println("Description cannot be empty.");
+                continue;
+            }
+
+            double amount = Util.getDouble("Enter Payment Amount ($): ");
+
+            try {
+                manager.addPaymentToEvent(selectedEvent.getEventName(), new PaymentRecord(desc, amount));
+                System.out.println("-> Success! Payment recorded.");
+            } catch (EventNotFoundException e) {
+                System.out.println("Error: " + e.getMessage());
+                break;
+            }
+        }
+    }
+
+    private static void viewFinancialReport(EventManager manager, Scanner scanner) {
+        System.out.println("\n--- Financial & Budget Report ---");
+        Event selectedEvent = selectEventByIndex(manager, scanner);
+        if (selectedEvent == null) return;
+
+        double totalExp = selectedEvent.getTotalExpenses();
+        double totalPay = selectedEvent.getTotalPayments();
+        double budget = selectedEvent.getAllocatedBudget();
+        double balance = budget + totalPay - totalExp;
+
+        System.out.println("\n========================================");
+        System.out.println("REPORT FOR: " + selectedEvent.getEventName());
+        System.out.println("Date: " + selectedEvent.getEventDate() + " | Location: " + selectedEvent.getLocation());
+        System.out.println("Allocated Budget: $" + budget);
+        System.out.println("Total Payments/Funding: $" + totalPay);
+        System.out.println("Total Expenses: $" + totalExp);
+        System.out.println("Net Balance / Remaining: $" + balance);
+        System.out.println("----------------------------------------");
+        System.out.println("Expense Breakdown:");
+        if (selectedEvent.getExpenses().isEmpty()) {
+            System.out.println("  (No expenses recorded)");
+        } else {
+            for (ExpenseRecord exp : selectedEvent.getExpenses()) {
+                System.out.println("  - " + exp);
+            }
+        }
+        System.out.println("Payment Breakdown:");
+        if (selectedEvent.getPayments().isEmpty()) {
+            System.out.println("  (No payments recorded)");
+        } else {
+            for (PaymentRecord pay : selectedEvent.getPayments()) {
+                System.out.println("  - " + pay);
+            }
+        }
+        System.out.println("========================================");
+    }
+
+    private static void deleteEvent(EventManager manager, Scanner scanner) {
+        System.out.println("\n--- Delete Event ---");
+        Event selectedEvent = selectEventByIndex(manager, scanner);
+        if (selectedEvent == null) return;
+
+        try {
+            manager.deleteEvent(selectedEvent.getEventName());
+            System.out.println("Success! Event '" + selectedEvent.getEventName() + "' has been deleted.");
+        } catch (EventNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 }
