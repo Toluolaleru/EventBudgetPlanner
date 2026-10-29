@@ -1,44 +1,94 @@
-import java.util.HashMap;
-import java.util.List;
+package service;
+
+import exception.EventNotFoundException;
+import model.Event;
+import model.ExpenseRecord;
+import model.PaymentRecord;
+
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Service class managing the core business logic for events, 
+ * including creation, lookup, dynamic financial logging, and deletion.
+ */
 public class EventManager {
-    
-    // Main storage: Maps an event name string directly to its corresponding Event object
-    private HashMap<String, Event> events;
+    private List<Event> events;
 
-    // Constructor: Initializes an empty map of events when the manager is created.  
+    /**
+     * Initializes an empty EventManager service.
+     */
     public EventManager() {
-        this.events = new HashMap<>();
+        this.events = new ArrayList<>();
     }
 
-     // Checks if an event with the given name already exists.
-    public boolean eventExists(String name) {
-        return events.containsKey(name);
+    /**
+     * Adds a new event to the managed event list.
+     * 
+     * @param event the Event object to store
+     */
+    public void addEvent(Event event) {
+        events.add(event);
     }
 
-     // Adds a new Event to our collection if it doesn't already exist.
-    public boolean addEvent(String name, Event event) {
-        if (eventExists(name)) {
-            return false; // Duplicate name found, cannot add
+    /**
+     * Retrieves all events currently stored in the system.
+     * 
+     * @return a List of all events
+     */
+    public List<Event> getAllEvents() {
+        return events;
+    }
+
+    /**
+     * Searches for an event by name (case-insensitive).
+     * 
+     * @param name the name of the event to look up
+     * @return the matching Event object
+     * @throws EventNotFoundException if no event matching the given name exists
+     */
+    public Event findEventByName(String name) throws EventNotFoundException {
+        for (Event event : events) {
+            if (event.getEventName().equalsIgnoreCase(name.trim())) {
+                return event;
+            }
         }
-        events.put(name, event);
-        return true;
+        throw new EventNotFoundException("Event with name '" + name + "' was not found.");
     }
 
-     // Retrieves a specific Event by its name.
-    public Event getEvent(String name) {
-        return events.get(name);
+    /**
+     * Records a new expense against a specific event.
+     * 
+     * @param eventName the name of the target event
+     * @param expense the ExpenseRecord to attach
+     * @throws EventNotFoundException if the event does not exist
+     */
+    public void addExpenseToEvent(String eventName, ExpenseRecord expense) throws EventNotFoundException {
+        Event event = findEventByName(eventName);
+        event.addExpense(expense);
     }
 
-    // Checks if our event collection is completely empty.
-    public boolean isEmpty() {
-        return events.isEmpty();
+    /**
+     * Records a new payment against a specific event.
+     * 
+     * @param eventName the name of the target event
+     * @param payment the PaymentRecord to attach
+     * @throws EventNotFoundException if the event does not exist
+     */
+    public void addPaymentToEvent(String eventName, PaymentRecord payment) throws EventNotFoundException {
+        Event event = findEventByName(eventName);
+        event.addPayment(payment);
     }
 
-
-    // Returns a list of all event names so we can display them with numbers in the menu.
-    public List<String> getEventNames() {
-        return new ArrayList<>(events.keySet());
+    /**
+     * Removes an event from the system by its name.
+     * 
+     * @param eventName the name of the event to delete
+     * @return true if successfully removed
+     * @throws EventNotFoundException if the target event is not found
+     */
+    public boolean deleteEvent(String eventName) throws EventNotFoundException {
+        Event event = findEventByName(eventName);
+        return events.remove(event);
     }
 }
