@@ -184,18 +184,22 @@ public class EventApp {
         Event selectedEvent = selectEventByIndex(manager, scanner);
         if (selectedEvent == null) return;
 
+        double budget = selectedEvent.getAllocatedBudget();
         double totalExp = selectedEvent.getTotalExpenses();
         double totalPay = selectedEvent.getTotalPayments();
-        double budget = selectedEvent.getAllocatedBudget();
-        double balance = budget + totalPay - totalExp;
+        double remainingBudget = budget - totalExp;
+        double netBalance = budget + totalPay - totalExp;
 
         System.out.println("\n========================================");
         System.out.println("REPORT FOR: " + selectedEvent.getEventName());
         System.out.println("Date: " + selectedEvent.getEventDate() + " | Location: " + selectedEvent.getLocation());
+        System.out.println("----------------------------------------");
         System.out.println("Allocated Budget: $" + budget);
-        System.out.println("Total Payments/Funding: $" + totalPay);
         System.out.println("Total Expenses: $" + totalExp);
-        System.out.println("Net Balance / Remaining: $" + balance);
+        System.out.println("Remaining Budget: $" + remainingBudget);
+        System.out.println("----------------------------------------");
+        System.out.println("Total Payments/Funding: $" + totalPay);
+        System.out.println("Net Balance / Remaining: $" + netBalance);
         System.out.println("----------------------------------------");
         System.out.println("Expense Breakdown:");
         if (selectedEvent.getExpenses().isEmpty()) {
