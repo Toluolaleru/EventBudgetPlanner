@@ -14,16 +14,17 @@ import java.util.Scanner;
  * Main application runner for the Event Management System.
  * Provides the interactive console menu loop with enhanced UX and validation.
  */
-public class EventApp {
+public class EventApp {	
     public static void main(String[] args) {
+    	
         EventManager eventManager = new EventManager();
         Scanner scanner = new Scanner(System.in);
         int choice = -1;
 
         System.out.println("==============================================");
-        System.out.println("   WELCOME TO THE EVENT MANAGEMENT SYSTEM");
+        System.out.println("   WELCOME TO EVENT MANAGEMENT SYSTEM");
         System.out.println("==============================================");
-
+        
         while (choice != 0) {
             System.out.println("\n--- Event Management Menu ---");
             System.out.println("1. Add New Event");
@@ -100,7 +101,7 @@ public class EventApp {
     private static Event selectEventByIndex(EventManager manager, Scanner scanner) {
         List<Event> events = manager.getAllEvents();
         if (events.isEmpty()) {
-            System.out.println("->No events available in the system. Please create an event");
+            System.out.println("-> No events available in the system. Please create an event");
             return null;
         }
 
@@ -189,7 +190,8 @@ public class EventApp {
         double totalPay = selectedEvent.getTotalPayments();
         double remainingBudget = budget - totalExp;
         double netBalance = budget + totalPay - totalExp;
-
+        
+  
         System.out.println("\n========================================");
         System.out.println("REPORT FOR: " + selectedEvent.getEventName());
         System.out.println("Date: " + selectedEvent.getEventDate() + " | Location: " + selectedEvent.getLocation());
@@ -197,9 +199,25 @@ public class EventApp {
         System.out.println("Allocated Budget: $" + budget);
         System.out.println("Total Expenses: $" + totalExp);
         System.out.println("Remaining Budget: $" + remainingBudget);
+        
+     // --- ADD BUDGET ALERT MESSAGE HERE ---
+        if (remainingBudget < 0) {
+            System.out.printf("⚠️ Budget Alert: Over budget by $%.2f!\n", Math.abs(remainingBudget));// absolute value
+        } else {
+            System.out.printf("✅ Budget Status: You have $%.2f remaining.\n", remainingBudget);
+        }
+        
         System.out.println("----------------------------------------");
         System.out.println("Total Payments/Funding: $" + totalPay);
         System.out.println("Net Balance / Remaining: $" + netBalance);
+        
+     // --- ADD NET BALANCE / DEFICIT ALERT MESSAGE HERE ---
+        if (netBalance < 0) {
+            System.out.printf("⚠️ Deficit Alert: Net loss of $%.2f.\n", Math.abs(netBalance));
+        } else {
+            System.out.printf("✅ Net Balance Status: Positive balance of $%.2f.\n", netBalance);
+        }
+        
         System.out.println("----------------------------------------");
         System.out.println("Expense Breakdown:");
         if (selectedEvent.getExpenses().isEmpty()) {
@@ -232,4 +250,5 @@ public class EventApp {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    
 }

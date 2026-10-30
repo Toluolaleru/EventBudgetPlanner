@@ -26,7 +26,7 @@ public class ExpenseRecord {
 		return amount;
 	}
 	
-	public void setAmount(double Amount) {
+	public void setAmount(double amount) {
 		this.amount = amount;
 	}
 	
