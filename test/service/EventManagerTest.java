@@ -89,6 +89,30 @@ public class EventManagerTest {
             manager.addExpenseToEvent("Ghost Event", expense);
         });
     }
+    
+    @Test
+    public void testFinancialCalculationsAndDeficits() throws Exception {
+        // 1. Arrange: Create manager and an event with a $1,000 budget
+        EventManager manager = new EventManager();
+        Event event = new Event("Gala Night", "2026-12-20", "Toronto", "Party", 1000.0);
+        manager.addEvent(event);
+        
+        // 2. Act: Add expenses that exceed the budget and payments (income)
+        manager.addExpenseToEvent("Gala Night", new ExpenseRecord("Catering", 1200.0)); // Over budget by 200
+        manager.addPaymentToEvent("Gala Night", new PaymentRecord("Ticket Sales", 800.0)); // Net: 800 - 1200 = -400
+        
+        // 3. Assert: Verify math and ensure negative alert conditions trigger properly
+        double remainingBudget = event.getAllocatedBudget() - event.getTotalExpenses();
+        double netBalance = event.getTotalPayments() - event.getTotalExpenses();
+        
+        assertEquals(-200.0, remainingBudget, 0.01);
+        assertEquals(-400.0, netBalance, 0.01);
+        
+        // Check that they drop below zero so your warning alerts will trigger
+        assertTrue(remainingBudget < 0, "Remaining budget should trigger over-budget alert");
+        assertTrue(netBalance < 0, "Net balance should trigger deficit alert");
+    }
+    
 
     @Test
     public void testDeleteEvent() throws Exception {
